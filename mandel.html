@@ -1,0 +1,118 @@
+<html> 
+  <head>
+    <title>Canvas Mandelbrot Set</title>
+    <script type="text/javascript">
+    function mandel(x0,y0,thresh){
+        var x = 0;
+        var y = 0;
+        var i = 0;
+        for (i = 0; i < thresh; i++) {
+            //z = z**2 + c
+            //z = (x + iy)**2 + x0 + iy0
+            //z = x*x - y * y + i2xy + x0 + iy0
+            //z = x*x - y * y + x0 + i(2xy + y0)
+            var xtemp = x;
+            x = x * x - y * y + x0;
+            y = 2 * xtemp * y + y0;
+            if ( x * x + y * y > 4 ) {
+                return i;//"white";
+            }
+        }
+        return i;//"black";
+    }
+
+    function smooth_mandel(x0, y0, thresh) {
+        var x = 0;
+        var y = 0;
+        var i = 0;
+        var P = 2;
+        for (i = 0; i < thresh; i++) {
+            var xtemp = x;
+            var abs_z;
+            x = x * x - y * y + x0;
+            y = 2 * xtemp * y + y0;
+            abs_z2 = x * x + y * y;
+            if ( abs_z2 > P * P ) {
+                /*     \nu(z) = n - \log_P (\log(z_n)/(2 * \log(N)) ),\,  */
+                return i - (Math.log(Math.log(abs_z2) / (2 * Math.log(2.1e10)) ) ) / Math.log(P);
+            }
+        }
+        return 1;
+    }
+        
+    var threshold = 0;
+    
+    function draw(n){
+        var canvas = document.getElementById('mandel');
+        if (canvas.getContext){
+            var ctx = canvas.getContext('2d');
+        }
+
+        //var iterations = threshold;
+        //threshold = (threshold + 1) % 20;
+        
+        // Hack it up.
+        var iterations = n;
+        
+        ctx.fillStyle = "red";
+        ctx.fillRect(100,200,100,100)
+        // We scale down to a range of 3
+        var scale_factor = 4.1;
+        var width_scale = canvas.width / scale_factor;
+        var height_scale = canvas.height / scale_factor;
+        var idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        //alert(idata.height + "x" + idata.width + " = " + idata.data.length);
+        for (y = 0; y < canvas.height; y++) {
+            for (x = 0; x < canvas.width; x++) {
+                var x0 = x / width_scale - scale_factor / 2; //2.0
+                var y0 = y / height_scale - scale_factor / 2; //1.5
+                var color = 20 - mandel(x0, y0, iterations);
+                //if (7 < color && color < 9) {
+                //    alert(x0 + " " + y0 + " " + color);
+                //}
+                var color = smooth_mandel(x0, y0, iterations);
+                //document.write(x0 + " " + y0 + " " + color + "\n");
+		//if (0.49 < color && color < 0.5) {
+                //    alert(x0 + " " + y0 + " " + color);
+                //}
+                var rnum = Math.floor(color / 20 * 255 / 3);
+                var bnum = Math.floor(color / 20 * 255);
+                var gnum = Math.floor(color / 20 * 255 / 3);
+                //var rnum = Math.floor(255 - color / 20 * 255);
+                //var bnum = Math.floor(255 - color / 20 * 255 / 3);
+                //var gnum = Math.floor(255 - color / 20 * 255);
+                //ctx.fillStyle = "rgb(" + rnum + "," + gnum + "," + bnum + ")";
+                //ctx.fillStyle = color;
+                //ctx.fillRect(x,y,1,1);
+                //alert((y *(idata.width * 4)) + (x * 4));
+                idata.data[((y *(idata.width * 4)) + (x * 4)) + 0] = rnum;
+                idata.data[((y *(idata.width * 4)) + (x * 4)) + 1] = gnum;
+                idata.data[((y *(idata.width * 4)) + (x * 4)) + 2] = bnum;
+                idata.data[((y *(idata.width * 4)) + (x * 4)) + 3] = 255;
+            }
+        }
+        ctx.putImageData(idata, 0, 0);
+    }
+
+    var i = 0;
+    function draw_loop() {
+        draw(i);
+        if (i < 19) {
+            i++;
+            setTimeout(draw_loop, 100);
+        }
+    }
+    
+    function draw_one() {
+        draw(20);
+    }
+    
+    </script>
+    <style type="text/css">
+      canvas { border: 1px solid black; }
+    </style>
+  </head>
+  <body onload="draw_one();">
+    <canvas id="mandel" width="600" height="600"></canvas>
+  </body>
+</html>
