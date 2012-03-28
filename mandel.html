@@ -27,6 +27,10 @@
         var i = 0;
         var P = 2;
         for (i = 0; i < thresh; i++) {
+            //z = z**P + c
+            //z = (x + iy)**P + x0 + iy0
+            //z = x*x - y * y + i2xy + x0 + iy0
+            //z = x*x - y * y + x0 + i(2xy + y0)
             var xtemp = x;
             var abs_z;
             x = x * x - y * y + x0;
@@ -34,57 +38,227 @@
             abs_z2 = x * x + y * y;
             if ( abs_z2 > P * P ) {
                 /*     \nu(z) = n - \log_P (\log(z_n)/(2 * \log(N)) ),\,  */
-                return i - (Math.log(Math.log(abs_z2) / (2 * Math.log(2.1e10)) ) ) / Math.log(P);
+                return (i - (Math.log(Math.log(abs_z2) / (2 * Math.log(2.1e10)) ) ) / Math.log(P)) / thresh;
             }
         }
         return 1;
     }
-        
+
     var threshold = 0;
+ 
+    var old_x;
+    var old_y;
+    var delta_x;
+    var delta_y;
+    var canvas_x_offset;
+    var canvas_y_offset;
     
-    function draw(n){
+    var mouseUp = 1;
+
+    function mousedown(e)
+    {
+        old_x = e.clientX;
+        old_y = e.clientY;
+
+	    mouseUp = 0;
+        
+        //alert(e.clientX + " " + e.clientY);
+    }
+ 
+    function mouseup(e)
+    {
+        
+        delta_x = e.clientX - old_x;
+        delta_y = e.clientY - old_y;
+        
+        //alert(center_x + " " + center_y);
+        
+        //shift_canvas(delta_x, delta_y);
+        
+        //setTimeout(draw(1), 1);
+
+        draw(1);
+        
+    	mouseUp = 1;
+    	delta_x = 0;
+    	delta_y = 0;
+    }
+
+    function mousemove(e)
+    {
+        var coordDiv = document.getElementById('coord');
         var canvas = document.getElementById('mandel');
+        var dx = e.pageX - canvas_x_offset;
+        var dy = e.pageY - canvas_y_offset;
+        /*coordDiv.innerHTML = "(" + dx + "," + dy + ") (" +
+                (fx_origin + ((dx / canvas.width) - 0.5) * window_size) + "," +
+                (fy_origin + ((dy / canvas.height) - 0.5) * window_size) + ")";
+        */
+        coordDiv.innerHTML = "(" + dx + "," + dy + ") (" +
+                e.pageX + "," + e.pageY + ") (" + 
+                e.clientX + "," + e.clientY + ")";
+                
+        if (mouseUp) {
+            return;
+        }
+        delta_x = e.clientX - old_x;
+        delta_y = e.clientY - old_y;
+        old_x = e.clientX;
+        old_y = e.clientY;
+        draw(1);
+    }
+
+    function dblclick(e)
+    {
+        var canvas = document.getElementById('mandel');
+        var dx = e.pageX - canvas_x_offset;
+        var dy = e.pageY - canvas_y_offset;
+        fx_origin += ((dx / canvas.width) - 0.5) * window_size;
+        fy_origin += ((dy / canvas.height) - 0.5) * window_size;
+        delta_x = 0;
+        delta_y = 0;
+        mouseUp = 1;
+        
+        draw(0);
+        //zoom_in();
+    }
+
+    function shift_canvas(canvas)
+    {
         if (canvas.getContext){
             var ctx = canvas.getContext('2d');
         }
 
-        //var iterations = threshold;
-        //threshold = (threshold + 1) % 20;
-        
-        // Hack it up.
-        var iterations = n;
-        
-        ctx.fillStyle = "red";
-        ctx.fillRect(100,200,100,100)
-        // We scale down to a range of 3
-        var scale_factor = 4.1;
-        var width_scale = canvas.width / scale_factor;
-        var height_scale = canvas.height / scale_factor;
         var idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        //alert(idata.height + "x" + idata.width + " = " + idata.data.length);
-        for (y = 0; y < canvas.height; y++) {
-            for (x = 0; x < canvas.width; x++) {
-                var x0 = x / width_scale - scale_factor / 2; //2.0
-                var y0 = y / height_scale - scale_factor / 2; //1.5
-                var color = 20 - mandel(x0, y0, iterations);
-                //if (7 < color && color < 9) {
-                //    alert(x0 + " " + y0 + " " + color);
-                //}
+        ctx.putImageData(idata, delta_x, delta_y);
+        //ctx.translate(delta_x, delta_y);
+
+        // 41
+        // 32
+        if (delta_x > 0) {
+            x_min = 0;
+            x_max = delta_x + 1;
+            // 34
+        } else {
+            x_min = canvas.width + delta_x - 1;
+            x_max = canvas.width;
+            // 12
+        }
+
+        if (delta_y > 0) {
+            y_min = 0;
+            y_max = delta_y + 1;
+            // 14
+        } else {
+            y_min = canvas.width + delta_y - 1;
+            y_max = canvas.width;
+            // 23
+        }
+
+        sub_draw(canvas, x_min, 0, x_max, canvas.height)
+        sub_draw(canvas, x_min, y_min, x_max, y_max)
+        //draw (x_min to x_max) from 0 to height
+        //     (y_min to y_max) from 0 to width
+        
+    }
+ 
+    function draw(moved)
+    {
+        var canvas = document.getElementById('mandel');
+        if (canvas.getContext){
+            var ctx = canvas.getContext('2d');
+        }
+/*
+        if (moved) {
+            shift_canvas(canvas);
+            //alert("shifted");
+            return
+        }
+*/
+        //clear image
+        //ctx.fillStyle = "white";
+        //ctx.fillRect(0,0,600,600)
+
+        var x_min = 0;
+        var x_max = canvas.width;
+        //var dx = center_x // - canvas.width / 2;
+        var y_min = 0;
+        var y_max = canvas.height;
+        //var dy = center_y //- canvas.height / 2;
+
+        if (moved) {
+            fx_origin += -((delta_x / canvas.width) ) * window_size
+            fy_origin += -((delta_y / canvas.height) ) * window_size
+        }
+
+/*        sub_draw(canvas, x_min, y_min, x_max, y_min)
+    }
+    
+    function sub_draw(canvas, x_min, y_min, x_max, y_max) {
+        if (canvas.getContext){
+            var ctx = canvas.getContext('2d');
+        }
+*/
+        var idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        var warn = 0;
+        var min_color = 1;
+
+        /*  0     x    xmax
+         * 0+----------+
+         *  |     |    |     px,py (0<px<xmax,0<py<ymax)
+         * y|-----p----|     ->
+         *  |     |    |     fx (fx_center - window/2 < fx < fx_center + window/2)
+         *  |     |    |     fx (fx_min < fx < fx_min + window)
+         * y+-----+----+     fx_min = fx_center - window/2
+         *max                fx = fx_min + window * (px / xmax)
+         *
+         * We have canvas coordinates and mandel coordinates.
+         * Canvas matters for drawing and shifting, but mandel should maintain the
+         * "picture origin" as it maters for zooming to remain consistent. 
+         */
+        /*
+        if (moved) {
+            fx_origin += -((delta_x / canvas.width) ) * window_size
+            fy_origin += -((delta_y / canvas.height) ) * window_size
+        }
+        */
+        var fx_min = fx_origin - window_size / 2;
+        var fy_min = fy_origin - window_size / 2;
+        
+        for (y = y_min; y < y_max; y++) {
+            for (x = x_min; x < x_max; x++) {
+                //var x0 = (x - dx) / width_scale - scale_x_center; //2.0
+                //var y0 = (y - dy) / height_scale - scale_y_center; //1.5
+                //var x0 = fx_min + window_size * ((x - dx) / x_max);
+                //var y0 = fy_min + window_size * ((y - dy) / y_max);
+                var x0 = fx_min + window_size * (x / canvas.width);
+                var y0 = fy_min + window_size * (y / canvas.height);
+
                 var color = smooth_mandel(x0, y0, iterations);
-                //document.write(x0 + " " + y0 + " " + color + "\n");
-		//if (0.49 < color && color < 0.5) {
-                //    alert(x0 + " " + y0 + " " + color);
-                //}
-                var rnum = Math.floor(color / 20 * 255 / 3);
-                var bnum = Math.floor(color / 20 * 255);
-                var gnum = Math.floor(color / 20 * 255 / 3);
-                //var rnum = Math.floor(255 - color / 20 * 255);
-                //var bnum = Math.floor(255 - color / 20 * 255 / 3);
-                //var gnum = Math.floor(255 - color / 20 * 255);
-                //ctx.fillStyle = "rgb(" + rnum + "," + gnum + "," + bnum + ")";
-                //ctx.fillStyle = color;
-                //ctx.fillRect(x,y,1,1);
-                //alert((y *(idata.width * 4)) + (x * 4));
+                
+                if (color < min_color) {
+                    min_color = color;
+                }
+                
+                // 42 43 y=463 transition
+                if (0.49 < color && color < 0.5 && warn) {
+                    alert(x0 + " " + y0 + " " + color);
+                    warn = 0;
+                }
+                var rcolor = color / 3 * 3;
+                //var gcolor = 0.5 * color / 3 * 3;
+                //var bcolor = 1 - color / 3 * 3;
+                var gcolor = color / 3 * 3;
+                var bcolor = color / 3 * 3;
+
+                var rnum = Math.floor(255 - rcolor * 255);
+                var gnum = Math.floor(255 - gcolor * 255);
+                var bnum = Math.floor(255 - bcolor * 255);
+                if (warn) {
+                    alert(rnum + " " + gnum + " " + bnum);
+                    warn = 0;
+                }
                 idata.data[((y *(idata.width * 4)) + (x * 4)) + 0] = rnum;
                 idata.data[((y *(idata.width * 4)) + (x * 4)) + 1] = gnum;
                 idata.data[((y *(idata.width * 4)) + (x * 4)) + 2] = bnum;
@@ -92,27 +266,155 @@
             }
         }
         ctx.putImageData(idata, 0, 0);
+        
+        //document.getElementById('nums').innerHTML = " " + dx + "," + dy + " (" + (fx_origin - window_size * dx / x_max) + "," + (fy_origin - window_size * dy / y_max) + ")";
+        document.getElementById('nums').innerHTML = delta_x + "," + delta_y + " (" + fx_origin + "," + fy_origin + ")";
+        
+        //alert(min_color)
+        //ctx.fillStyle = "#33B5E5";
+        //ctx.fillRect(500,500,100,100);
+        draw_axis()
     }
 
     var i = 0;
     function draw_loop() {
-        draw(i);
         if (i < 19) {
+            draw(0);
+            iterations = i;
             i++;
             setTimeout(draw_loop, 100);
         }
     }
+
+    var iterations;
+
+    var fx_origin = 0;
+    var fy_origin = 0;
+    var window_size;
+
+    function reset_view() {
+        delta_x = 0;
+        delta_y = 0;
+        fx_origin = 0;
+        fy_origin = 0;
+        window_size = 4.1;
+        mouseUp = 1;
+        iterations = 20;
+    }
+    
+    function init() {
+        var canvas = document.getElementById('mandel');
+        canvas.onmousedown = mousedown;
+        canvas.onmouseup = mouseup;
+        canvas.onmousemove = mousemove;
+        canvas.ondblclick = dblclick;
+
+        canvas_x_offset = 0;
+        canvas_y_offset = 0;
+        var curElem = canvas;
+        // accumulate all offset; not just the canvas itself.
+        do {
+            canvas_x_offset += curElem.offsetLeft;
+            canvas_y_offset += curElem.offsetTop;
+        } while (curElem = curElem.offsetParent)
+    }
+    
+    var zoom_factor = 1.5;
+    
+    function zoom_in() {
+        window_size /= zoom_factor;
+        iterations += 4;
+        draw(0);
+    }
+
+    function zoom_out() {
+        window_size *= zoom_factor;
+        iterations -= 4;
+        draw(0);
+    }
+    
+    function reset() {
+        reset_view();
+        draw(0);
+    }
+
+    var draw_axes = 0
+    function draw_axis() {
+        if (!draw_axes) {
+            return;
+        }
+    
+        var canvas = document.getElementById('mandel');
+        if (canvas.getContext){
+            var ctx = canvas.getContext('2d');
+        }
+        
+        ctx.strokeStyle = "red";
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0)
+        ctx.lineTo(canvas.width / 2, canvas.height)
+        ctx.moveTo(0, canvas.height / 2)
+        ctx.lineTo(canvas.width, canvas.height / 2)
+        ctx.stroke()
+    }
+
+    function toggle_axes() {
+        draw_axes = ! draw_axes;
+        draw(0);
+        button = document.getElementById('axes_button');
+        if (draw_axes) {
+            button.value = "axes off";
+        } else {
+            button.value = "axes on";
+        }
+    }
     
     function draw_one() {
-        draw(20);
+        init();
+        reset_view();
+        draw(0);
+        draw_axis();
     }
     
     </script>
     <style type="text/css">
-      canvas { border: 1px solid black; }
+        .floatright { float: right; }
+        canvas { border: 1px solid black; }
+        #container {
+          height: 600px;
+          position: relative;
+          width: 600px;
+        }
+        #mandel
+        {
+          height: 600px;
+          width: 600px;
+          z-index: 1;   
+        }
+        #controls
+        {
+          top: 0;
+          right: 0;
+          position: absolute;
+          width: 100%;
+          z-index: 2;
+        }
     </style>
   </head>
   <body onload="draw_one();">
-    <canvas id="mandel" width="600" height="600"></canvas>
+    <div>
+            <div id=container>
+            <div id="controls">
+            <input type="button" name="zoomin" value="zoom+" onClick="zoom_in()">
+            <input type="button" name="zoomout" value="zoom-" onClick="zoom_out()">
+            <input type="button" name="reset" value="reset" onClick="reset()">
+            <input type="button" id="axes_button" name="axes" value="axes on" onClick="toggle_axes()">
+            </div>
+            <canvas id="mandel" width="600" height="600"></canvas>
+            </div>
+            <div id=nums>(0,0)</div>
+            <div id=coord>(0,0) (0,0)</div>
+        </div>
+    </div>
   </body>
 </html>
