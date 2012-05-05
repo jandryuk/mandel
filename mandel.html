@@ -99,15 +99,18 @@ smooth_mandel(x0,y0,thresh)
     {
         var coordDiv = document.getElementById('coord');
         var canvas = document.getElementById('mandel');
-        var dx = e.pageX - canvas_x_offset;
-        var dy = e.pageY - canvas_y_offset;
+        var x = e.pageX - canvas_x_offset;
+        var y = e.pageY - canvas_y_offset;
         /*coordDiv.innerHTML = "(" + dx + "," + dy + ") (" +
                 (fx_origin + ((dx / canvas.width) - 0.5) * window_size) + "," +
                 (fy_origin + ((dy / canvas.height) - 0.5) * window_size) + ")";
         */
-        coordDiv.innerHTML = "(" + dx + "," + dy + ") (" +
-                e.pageX + "," + e.pageY + ") (" + 
-                e.clientX + "," + e.clientY + ")";
+        var fx_min = fx_origin - window_size / 2;
+        var fy_min = fy_origin - window_size / 2;
+        var x0 = fx_min + window_size * (x / canvas.width);
+        var y0 = fy_min + window_size * (y / canvas.height);
+        coordDiv.innerHTML = "(" + x + "," + y + ") (" + x0 + "," + y0 +
+	")-> " + smooth_mandel(x0, y0, iterations);
                 
         if (mouseUp) {
             return;
@@ -202,14 +205,14 @@ smooth_mandel(x0,y0,thresh)
             fy_origin += -((delta_y / canvas.height) ) * window_size
         }
 
-/*        sub_draw(canvas, x_min, y_min, x_max, y_min)
+        sub_draw(canvas, x_min, y_min, x_max, y_max)
     }
     
     function sub_draw(canvas, x_min, y_min, x_max, y_max) {
         if (canvas.getContext){
             var ctx = canvas.getContext('2d');
         }
-*/
+
         var idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
         var warn = 0;
@@ -225,8 +228,8 @@ smooth_mandel(x0,y0,thresh)
          *max                fx = fx_min + window * (px / xmax)
          *
          * We have canvas coordinates and mandel coordinates.
-         * Canvas matters for drawing and shifting, but mandel should maintain the
-         * "picture origin" as it maters for zooming to remain consistent. 
+         * Canvas matters for drawing and shifting, but mandel should maintain
+         * the "picture origin" as it matters for zooming to remain consistent. 
          */
         /*
         if (moved) {
@@ -369,13 +372,30 @@ smooth_mandel(x0,y0,thresh)
         ctx.stroke()
     }
 
+    function undraw_axes() {
+        var canvas = document.getElementById('mandel');
+        if (canvas.getContext){
+            var ctx = canvas.getContext('2d');
+        }
+        x = canvas.width / 2
+        for (y = 0; y < canvas.height; y++) {
+                sub_draw(canvas, x-1, 0, x+1, canvas.height);
+        }
+        y = canvas.width / 2
+        for (x = 0; x < canvas.height; x++) {
+                sub_draw(canvas, 0, y-1, canvas.width, y+1);
+        }
+    }
+    
     function toggle_axes() {
         draw_axes = ! draw_axes;
-        draw(0);
+        //draw(0);
         button = document.getElementById('axes_button');
         if (draw_axes) {
+            draw_axis()
             button.value = "axes off";
         } else {
+            undraw_axes();
             button.value = "axes on";
         }
     }
