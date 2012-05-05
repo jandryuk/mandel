@@ -262,15 +262,23 @@ smooth_mandel(x0,y0,thresh)
                     alert(x0 + " " + y0 + " " + color);
                     warn = 0;
                 }
-                var rcolor = color / 3 * 3;
                 //var gcolor = 0.5 * color / 3 * 3;
                 //var bcolor = 1 - color / 3 * 3;
+		/*
+                var rcolor = color / 3 * 3;
                 var gcolor = color / 3 * 3;
                 var bcolor = color / 3 * 3;
-
                 var rnum = Math.floor(255 - rcolor * 255);
                 var gnum = Math.floor(255 - gcolor * 255);
                 var bnum = Math.floor(255 - bcolor * 255);
+		*/
+		var rcolor = Math.sin(Math.PI * 1 * color);
+                var gcolor = Math.sin(Math.PI * 1 * color);
+                var bcolor = Math.sin(Math.PI * 2 * color);
+                var rnum = Math.floor(rcolor * 255);
+                var gnum = Math.floor(gcolor * 255);
+                var bnum = Math.floor(bcolor * 255);
+		
                 if (warn) {
                     alert(rnum + " " + gnum + " " + bnum);
                     warn = 0;
