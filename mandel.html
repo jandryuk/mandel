@@ -388,13 +388,9 @@ smooth_mandel(x0,y0,thresh)
             var ctx = canvas.getContext('2d');
         }
         x = canvas.width / 2
-        for (y = 0; y < canvas.height; y++) {
-                sub_draw(canvas, x-1, 0, x+1, canvas.height);
-        }
-        y = canvas.width / 2
-        for (x = 0; x < canvas.height; x++) {
-                sub_draw(canvas, 0, y-1, canvas.width, y+1);
-        }
+        sub_draw(canvas, x-1, 0, x+1, canvas.height);
+        y = canvas.height / 2
+        sub_draw(canvas, 0, y-1, canvas.width, y+1);
     }
     
     function toggle_axes() {
