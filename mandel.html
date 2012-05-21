@@ -48,11 +48,11 @@ smooth_mandel(x0,y0,thresh)
             x = x * x - y * y + x0;
             y = 2 * xtemp * y + y0;
             abs_z2 = x * x + y * y;
-            if ( abs_z2 > P * P ) {
+            if ( abs_z2 > P * P * 10 ) {
                 /*     \nu(z) = n - \log_P (\log(z_n)/(2 * \log(N)) ),\,  */
                 //return (i - (Math.log(Math.log(abs_z2) / (2 * Math.log(2.1e10)) ) ) / Math.log(P)) / thresh;
-                return (i - (Math.log(Math.sqrt(abs_z2)) ) / Math.log(P)) / thresh;
-                //return (i - (Math.log(Math.log(Math.sqrt(abs_z2)) ) ) / Math.log(P)) / thresh;
+                //return (i - (Math.log(Math.sqrt(abs_z2)) ) / Math.log(P)) / thresh;
+                return (i + 1 - (Math.log(Math.log(Math.sqrt(abs_z2)) ) ) / Math.log(P)) / thresh;
             }
         }
         return 1;
