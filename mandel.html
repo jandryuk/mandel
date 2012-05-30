@@ -373,30 +373,15 @@ smooth_mandel(x0,y0,thresh)
         if (!draw_axes) {
             return;
         }
-    
-        var canvas = document.getElementById('mandel');
-        if (canvas.getContext){
-            var ctx = canvas.getContext('2d');
-        }
-        
-        ctx.strokeStyle = "red";
-        ctx.beginPath();
-        ctx.moveTo(canvas.width / 2, 0)
-        ctx.lineTo(canvas.width / 2, canvas.height)
-        ctx.moveTo(0, canvas.height / 2)
-        ctx.lineTo(canvas.width, canvas.height / 2)
-        ctx.stroke()
+        var axes = document.getElementById('axes');
+        axes.style.display = "inline";
+        return;
     }
 
     function undraw_axes() {
-        var canvas = document.getElementById('mandel');
-        if (canvas.getContext){
-            var ctx = canvas.getContext('2d');
-        }
-        x = canvas.width / 2
-        sub_draw(canvas, x-1, 0, x+1, canvas.height);
-        y = canvas.height / 2
-        sub_draw(canvas, 0, y-1, canvas.width, y+1);
+        var axes = document.getElementById('axes');
+        axes.style.display = "none";
+        return;
     }
     
     function toggle_axes() {
@@ -434,8 +419,16 @@ smooth_mandel(x0,y0,thresh)
           top: 0;
           left: 0;
           position: absolute;
-          width: 100%;
-          z-index: 2;
+          z-index: 4;
+        }
+        #axes {
+             display: none;
+             width:   100%;
+             height:  100%;
+             position: absolute;
+             top:  0;
+             left: 0;
+             z-index: 3;
         }
         #stats { position: absolute; z-index: 2; bottom: 0; left: 0; color: white;}
     </style>
@@ -452,6 +445,10 @@ smooth_mandel(x0,y0,thresh)
             <canvas id="mandel" width="600" height="600"></canvas>
             </div>
         </div>
+      <svg id="axes">
+         <line x1="0%" y1="50%" x2="100%" y2="50%" stroke-width="1" stroke="red" />
+         <line x1="50%" y1="0%" x2="50%" y2="100%" stroke-width="1" stroke="red" />
+      </svg>
       <div id=stats>
         <div id=nums>(0,0)</div>
         <div id=coord>(0,0) (0,0)</div>
