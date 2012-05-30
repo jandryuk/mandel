@@ -50,8 +50,6 @@ smooth_mandel(x0,y0,thresh)
             abs_z2 = x * x + y * y;
             if ( abs_z2 > P * P * 10 ) {
                 /*     \nu(z) = n - \log_P (\log(z_n)/(2 * \log(N)) ),\,  */
-                //return (i - (Math.log(Math.log(abs_z2) / (2 * Math.log(2.1e10)) ) ) / Math.log(P)) / thresh;
-                //return (i - (Math.log(Math.sqrt(abs_z2)) ) / Math.log(P)) / thresh;
                 return (i + 1 - (Math.log(Math.log(Math.sqrt(abs_z2)) ) ) / Math.log(P)) / thresh;
             }
         }
@@ -137,7 +135,6 @@ smooth_mandel(x0,y0,thresh)
         mouseUp = 1;
         
         draw(0);
-        //zoom_in();
     }
 
     function shift_canvas(canvas)
@@ -247,16 +244,6 @@ smooth_mandel(x0,y0,thresh)
                     alert(x0 + " " + y0 + " " + color);
                     warn = 0;
                 }
-                //var gcolor = 0.5 * color / 3 * 3;
-                //var bcolor = 1 - color / 3 * 3;
-		/*
-                var rcolor = color / 3 * 3;
-                var gcolor = color / 3 * 3;
-                var bcolor = color / 3 * 3;
-                var rnum = Math.floor(255 - rcolor * 255);
-                var gnum = Math.floor(255 - gcolor * 255);
-                var bnum = Math.floor(255 - bcolor * 255);
-		*/
 		var rcolor = Math.sin(Math.PI * 1 * color);
                 var gcolor = Math.sin(Math.PI * 2 * color);
                 var bcolor = Math.sin(Math.PI * 3 * color);
@@ -278,9 +265,6 @@ smooth_mandel(x0,y0,thresh)
         
         document.getElementById('nums').innerHTML = delta_x + "," + delta_y + " (" + fx_origin + "," + fy_origin + ")";
         
-        //alert(min_color)
-        //ctx.fillStyle = "#33B5E5";
-        //ctx.fillRect(500,500,100,100);
         draw_axis()
     }
 
