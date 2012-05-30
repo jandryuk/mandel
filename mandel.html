@@ -437,6 +437,7 @@ smooth_mandel(x0,y0,thresh)
           width: 100%;
           z-index: 2;
         }
+        #stats { position: absolute; z-index: 2; bottom: 0; left: 0; color: white;}
     </style>
   </head>
   <body onload="draw_one();">
@@ -450,10 +451,12 @@ smooth_mandel(x0,y0,thresh)
             </div>
             <canvas id="mandel" width="600" height="600"></canvas>
             </div>
-            <div id=nums>(0,0)</div>
-            <div id=coord>(0,0) (0,0)</div>
-            <div id=scale>(0)</div>
         </div>
+      <div id=stats>
+        <div id=nums>(0,0)</div>
+        <div id=coord>(0,0) (0,0)</div>
+        <div id=scale>(0)</div>
+      </div>
     </div>
   </body>
 </html>
