@@ -104,14 +104,11 @@ smooth_mandel(x0,y0,thresh)
         var canvas = document.getElementById('mandel');
         var x = e.pageX - canvas_x_offset;
         var y = e.pageY - canvas_y_offset;
-        /*coordDiv.innerHTML = "(" + dx + "," + dy + ") (" +
-                (fx_origin + ((dx / canvas.width) - 0.5) * window_size) + "," +
-                (fy_origin + ((dy / canvas.height) - 0.5) * window_size) + ")";
-        */
-        var fx_min = fx_origin - window_size / 2;
-        var fy_min = fy_origin - window_size / 2;
-        var x0 = fx_min + window_size * (x / canvas.width);
-        var y0 = fy_min + window_size * (y / canvas.height);
+
+        var fx_min = fx_origin - pixel_size * canvas.width / 2;
+        var fy_min = fy_origin - pixel_size * canvas.height / 2;
+        var x0 = fx_min + pixel_size * x;
+        var y0 = fy_min + pixel_size * y;
         coordDiv.innerHTML = "(" + x + "," + y + ") (" + x0 + "," + y0 +
 	")-> " + smooth_mandel(x0, y0, iterations);
                 
@@ -127,11 +124,14 @@ smooth_mandel(x0,y0,thresh)
 
     function dblclick(e)
     {
+	/* We have an origin (fx0,fy0).  We double click on cX,cY.
+	 * cX,cY correlate to fX,fY.  Just set fx0 to fX?
+	 */
         var canvas = document.getElementById('mandel');
         var dx = e.pageX - canvas_x_offset;
         var dy = e.pageY - canvas_y_offset;
-        fx_origin += ((dx / canvas.width) - 0.5) * window_size;
-        fy_origin += ((dy / canvas.height) - 0.5) * window_size;
+        fx_origin = fx_origin + pixel_size * (dx - canvas.width / 2);
+        fy_origin = fy_origin + pixel_size * (dy - canvas.height / 2);
         delta_x = 0;
         delta_y = 0;
         mouseUp = 1;
@@ -185,27 +185,17 @@ smooth_mandel(x0,y0,thresh)
         if (canvas.getContext){
             var ctx = canvas.getContext('2d');
         }
-/*
-        if (moved) {
-            shift_canvas(canvas);
-            //alert("shifted");
-            return
-        }
-*/
-        //clear image
-        //ctx.fillStyle = "white";
-        //ctx.fillRect(0,0,600,600)
+
+        update_window_scale();
 
         var x_min = 0;
         var x_max = canvas.width;
-        //var dx = center_x // - canvas.width / 2;
         var y_min = 0;
         var y_max = canvas.height;
-        //var dy = center_y //- canvas.height / 2;
 
         if (moved) {
-            fx_origin += -((delta_x / canvas.width) ) * window_size
-            fy_origin += -((delta_y / canvas.height) ) * window_size
+            fx_origin = fx_origin - pixel_size * delta_x;
+            fy_origin = fy_origin - pixel_size * delta_y;
         }
 
         sub_draw(canvas, x_min, y_min, x_max, y_max)
@@ -234,23 +224,17 @@ smooth_mandel(x0,y0,thresh)
          * Canvas matters for drawing and shifting, but mandel should maintain
          * the "picture origin" as it matters for zooming to remain consistent. 
          */
-        /*
-        if (moved) {
-            fx_origin += -((delta_x / canvas.width) ) * window_size
-            fy_origin += -((delta_y / canvas.height) ) * window_size
-        }
-        */
-        var fx_min = fx_origin - window_size / 2;
-        var fy_min = fy_origin - window_size / 2;
+        var fx_min = fx_origin - pixel_size * canvas.width / 2;
+        var fy_min = fy_origin - pixel_size * canvas.height / 2;
+        
+	var scaleDiv = document.getElementById('scale');
+	scaleDiv.innerHTML = "(" + fx_min + " = " + fx_origin + " - " + pixel_size * canvas.width / 2 + ")\n(" + fy_min + " = " + fy_origin + " - " + pixel_size * canvas.height / 2 + ")" + pixel_size * canvas.height + " " + canvas.width + "," + canvas.height + "\n(" + pixel_size * canvas.width + "," + pixel_size * canvas.height + ")";
+ 
         
         for (y = y_min; y < y_max; y++) {
             for (x = x_min; x < x_max; x++) {
-                //var x0 = (x - dx) / width_scale - scale_x_center; //2.0
-                //var y0 = (y - dy) / height_scale - scale_y_center; //1.5
-                //var x0 = fx_min + window_size * ((x - dx) / x_max);
-                //var y0 = fy_min + window_size * ((y - dy) / y_max);
-                var x0 = fx_min + window_size * (x / canvas.width);
-                var y0 = fy_min + window_size * (y / canvas.height);
+                var x0 = fx_min + pixel_size * x;
+                var y0 = fy_min + pixel_size * y;
 
                 var color = smooth_mandel(x0, y0, iterations);
                 
@@ -316,6 +300,23 @@ smooth_mandel(x0,y0,thresh)
     var fx_origin = 0;
     var fy_origin = 0;
     var window_size;
+    var window_size_x = 1;
+    var window_size_y = 1;
+    var vpheight;
+    var vpwidth;
+    var pixel_size;
+
+    function update_window_scale() {
+	    if (vpheight < vpwidth) {
+		    window_size_y = 1;
+		    window_size_x = vpwidth / vpheight;
+		    pixel_size = window_size / vpheight;
+	    } else {
+		    window_size_y = vpheight / vpwidth;
+		    window_size_x = 1;
+		    pixel_size = window_size / vpwidth;
+	    }
+    }
 
     function reset_view() {
         delta_x = 0;
@@ -333,6 +334,9 @@ smooth_mandel(x0,y0,thresh)
         canvas.onmouseup = mouseup;
         canvas.onmousemove = mousemove;
         canvas.ondblclick = dblclick;
+
+	vpheight = canvas.height;
+	vpwidth = canvas.width;
 
         canvas_x_offset = 0;
         canvas_y_offset = 0;
@@ -419,14 +423,10 @@ smooth_mandel(x0,y0,thresh)
         .floatright { float: right; }
         canvas { border: 1px solid black; }
         #container {
-          height: 600px;
           position: relative;
-          width: 600px;
         }
         #mandel
         {
-          height: 600px;
-          width: 600px;
           z-index: 1;   
         }
         #controls
@@ -452,6 +452,7 @@ smooth_mandel(x0,y0,thresh)
             </div>
             <div id=nums>(0,0)</div>
             <div id=coord>(0,0) (0,0)</div>
+            <div id=scale>(0)</div>
         </div>
     </div>
   </body>
