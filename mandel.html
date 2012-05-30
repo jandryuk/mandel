@@ -334,6 +334,8 @@ smooth_mandel(x0,y0,thresh)
         canvas.onmousemove = mousemove;
         canvas.ondblclick = dblclick;
 
+	canvas.height = window.innerHeight;
+	canvas.width = window.innerWidth;
 	vpheight = canvas.height;
 	vpwidth = canvas.width;
 
@@ -419,19 +421,18 @@ smooth_mandel(x0,y0,thresh)
     
     </script>
     <style type="text/css">
-        .floatright { float: right; }
-        canvas { border: 1px solid black; }
+	* { margin: 0; }
         #container {
           position: relative;
         }
         #mandel
         {
-          z-index: 1;   
+          z-index: 1;
         }
         #controls
         {
           top: 0;
-          right: 0;
+          left: 0;
           position: absolute;
           width: 100%;
           z-index: 2;
