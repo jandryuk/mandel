@@ -313,10 +313,11 @@ smooth_mandel(x0,y0,thresh)
     
     function init() {
         var canvas = document.getElementById('mandel');
-        canvas.onmousedown = mousedown;
-        canvas.onmouseup = mouseup;
-        canvas.onmousemove = mousemove;
-        canvas.ondblclick = dblclick;
+        var container = document.getElementById('container');
+        container.onmousedown = mousedown;
+        container.onmouseup = mouseup;
+        container.onmousemove = mousemove;
+        container.ondblclick = dblclick;
 
 	canvas.height = window.innerHeight;
 	canvas.width = window.innerWidth;
